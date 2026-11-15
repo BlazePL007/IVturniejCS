@@ -33,7 +33,7 @@ async function init(){
  // Najpierw sprawdzamy członkostwo administratora. Samo członkostwo nie daje dostępu do danych.
  const {data:isMember,error:memberError}=await db.rpc("is_admin_member");
  if(memberError||isMember!==true){$("#loginPanel").classList.remove("hidden");say($("#loginStatus"),"To konto nie ma uprawnień administratora.","error");return}
- // Serwer uznaje MFA tylko przez 5 minut od ostatniego poprawnego kodu TOTP.
+ // Serwer uznaje MFA tylko przez 30 minut od ostatniego poprawnego kodu TOTP.
  const {data:freshAdmin}=await db.rpc("is_current_user_admin");
  if(freshAdmin===true){await loadAdmin();return}
  const {data:factorData,error}=await db.auth.mfa.listFactors();
