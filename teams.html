@@ -10,7 +10,7 @@
  const update=async session=>{
    const signedIn=!!session?.user;
    btn.textContent=signedIn?"KONTO":"LOGOWANIE";
-   btn.href=signedIn?"team-register.html":"register.html";
+   btn.href=signedIn?"account.html":"login.html";
    if(adminBtn){adminBtn.classList.add("hidden");if(signedIn){const id=++checkId;try{const {data,error}=await db.rpc("is_admin_member");if(id===checkId&&!error&&data===true)adminBtn.classList.remove("hidden");}catch(_){/* nie udało się sprawdzić członkostwa administratora — przycisk pozostaje ukryty */}}}
  };
  db.auth.getSession().then(({data})=>update(data.session));
