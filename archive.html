@@ -16,9 +16,50 @@
   const display=v=>esc(clean(v))||"—";
   const formatDate=v=>{
     if(!v)return "brak informacji";
-    const d=new Date(v);
-    if(Number.isNaN(d.getTime()))return clean(v);
-    return new Intl.DateTimeFormat("pl-PL",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"}).format(d);
+    const s=String(v).trim();
+    const dateOnly=s.match(/^(\\d{4})-(\\d{2})-(\\d{2})$/);
+    if(dateOnly){
+      const [,y,m,d]=dateOnly;
+      return `${d}.${m}.${y}`;
+    }
+    const parsed=new Date(s);
+    if(Number.isNaN(parsed.getTime()))return clean(v);
+    return new Intl.DateTimeFormat("pl-PL",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"}).format(parsed);
+  };
+  // Daty i godziny meczów są lokalnymi wartościami przepisanymi z DOCX.
+  // Nie parsujemy ich przez Date()/toLocaleString(), aby strefa czasowa
+  // przeglądarki nie zmieniała godziny (np. 00:00 na 02:00).
+  const formatMatchDate=row=>{
+    const rawDate=String(row.date??"").trim();
+    const rawTime=String(row.time??"").trim();
+    if(!rawDate)return "brak informacji";
+    let day="",month="",year="",embeddedTime="";
+    let m=rawDate.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}:\d{2})(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:?\d{2})?)?$/);
+    if(m){[,year,month,day,embeddedTime=""]=m;}
+    else {
+      m=rawDate.match(/^(\d{1,2})[.\-/](\d{1,2})[.\-/](\d{4})(?:[, T]+(\d{1,2}:\d{2}))?$/);
+      if(m){[,day,month,year,embeddedTime=""]=m;day=day.padStart(2,"0");month=month.padStart(2,"0");}
+    }
+    if(!day)return clean(rawDate)||"brak informacji";
+    const time=rawTime||embeddedTime;
+    return `${day}.${month}.${year}${time?`, ${time}`:""}`;
+  };
+  const formatMapScores=value=>{
+    if(value===null||value===undefined||value==="")return "—";
+    let items=value;
+    if(typeof items==="string"){
+      try{items=JSON.parse(items)}catch{return esc(clean(value))||"—";}
+    }
+    if(!Array.isArray(items))return "—";
+    const scores=items.map(item=>{
+      if(item===null||item===undefined)return "—";
+      if(typeof item!=="object")return clean(item)||"—";
+      const a=item.a??item.team1??item.home??item.score1;
+      const b=item.b??item.team2??item.away??item.score2;
+      if(a===undefined||a===null||a===""||b===undefined||b===null||b==="")return "—";
+      return `${a}–${b}`;
+    });
+    return scores.length?scores.map(esc).join(", "):"—";
   };
   const parseCsv=async path=>{
     const r=await fetch(path);
@@ -31,7 +72,8 @@
   const section=(title,rows,cols,emptyText="Brak zapisanych danych dla tej edycji.")=>{
     const body=rows.length?rows.map(row=>`<tr>${cols.map(c=>{
       const value=row[c[0]];
-      if(c[0]==="date")return `<td>${esc(formatDate(value))}</td>`;
+      if(c[0]==="date")return `<td>${esc(formatMatchDate(row))}</td>`;
+      if(c[0]==="maps")return `<td>${formatMapScores(value)}</td>`;
       if(c[3]==="image"){
         const url=clean(value);
         return `<td>${url?`<a href="${esc(url)}" target="_blank" rel="noopener">Zobacz mapę</a>`:"—"}</td>`;
@@ -71,11 +113,11 @@
       h+=section("DRUŻYNY",teams,[["name","Drużyna"],["captain","Kapitan"],["players","Zawodnicy"],["reserve","Rezerwowi"]]);
       h+=section("TABELE GRUPOWE",standings,[["group","Grupa"],["place","Miejsce"],["name","Drużyna"],["M","Mecze"],["W","Wygrane"],["R","Remisy"],["P","Porażki"],["rf","Rundy +"],["ra","Rundy −"],["Pkt","Punkty"]]);
       h+=section("WYNIKI FAZY GRUPOWEJ",groupMatches,[["group","Grupa"],["team1","Drużyna 1"],["team2","Drużyna 2"],["maps","Wyniki map"],["date","Data"]]);
-      h+=section("PLAY-OFFY",playoffs,[["round","Runda"],["team1","Drużyna 1"],["team2","Drużyna 2"],["maps","Wyniki map"],["winnerName","Zwycięzca"]]);
+      h+=section("PLAY-OFFY",playoffs,[["round","Runda"],["team1","Drużyna 1"],["team2","Drużyna 2"],["maps","Wynik serii BO3"],["winnerName","Zwycięzca"]]);
       h+=section("KLASYFIKACJA KOŃCOWA",finals,[["place","Miejsce"],["name","Drużyna"]]);
       h+=section("MVP",mvp,[["player","Zawodnik"],["count","MVP"]]);
       h+=section("NAGRODA PUBLICZNOŚCI",audience,[["player","Zawodnik"],["count","Punkty"]]);
-      h+=section("STATYSTYKI MAP",maps,[["name","Mapa"],["count","Rozegrania"],["image","Obrazek","","image"]]);
+      h+=section("STATYSTYKI MAP",maps,[["name","Mapa"],["count","Rozegrania"]]);
       root.innerHTML=h;
       root.querySelector(".archive-back").addEventListener("click",showList);
     }catch(e){root.innerHTML=`<button class="archive-back" type="button">← Wróć do listy edycji</button><p class="note">Nie udało się wczytać archiwum: ${esc(e.message)}</p>`;root.querySelector(".archive-back").addEventListener("click",showList);}
