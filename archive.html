@@ -111,13 +111,19 @@
       const groupMatches=matches.filter(x=>clean(x.stage).toLowerCase()==="group"||clean(x.group));
       let h=`<button class="archive-back" type="button">← Wróć do listy edycji</button><div class="archive-edition-head"><div class="eyebrow">EDYCJA ${esc(y)}</div><p class="note">${teams.length} drużyn <span class="archive-dot">·</span> Eksport: ${esc(formatDate(meta.exportedAt))}</p></div>`;
       h+=section("DRUŻYNY",teams,meta.format==="2vs2"?[["name","Drużyna (duet)"],["players","Zawodnicy"]]:[["name","Drużyna"],["captain","Kapitan"],["players","Zawodnicy"],["reserve","Rezerwowi"]]);
-      h+=section("TABELE GRUPOWE",standings,[["group","Grupa"],["place","Miejsce"],["name","Drużyna"],["M","Mecze"],["W","Wygrane"],["R","Remisy"],["P","Porażki"],["rf","Rundy +"],["ra","Rundy −"],["Pkt","Punkty"]]);
+      const isFirstEdition=meta.format==="2vs2";
+      // W I edycji 2vs2 źródło zawiera wyłącznie wyniki serii (np. 2:0),
+      // a nie wyniki rund, MVP, nagrodę publiczności ani statystyki map.
+      const standingsCols=[["group","Grupa"],["place","Miejsce"],["name","Drużyna"],["M","Mecze"],["W","Wygrane"],["R","Remisy"],["P","Porażki"],...(isFirstEdition?[]:[["rf","Rundy +"],["ra","Rundy −"]]),["Pkt","Punkty"]];
+      h+=section("TABELE GRUPOWE",standings,standingsCols);
       h+=section("WYNIKI FAZY GRUPOWEJ",groupMatches,meta.format==="2vs2"?[["group","Grupa"],["team1","Drużyna 1"],["team2","Drużyna 2"],["maps","Wynik"],["date","Data"]]:[["group","Grupa"],["team1","Drużyna 1"],["team2","Drużyna 2"],["maps","Wyniki map"],["date","Data"]]);
       h+=section("PLAY-OFFY",playoffs,[["round","Runda"],["team1","Drużyna 1"],["team2","Drużyna 2"],["maps","Wynik serii"],["winnerName","Zwycięzca"]]);
       h+=section("KLASYFIKACJA KOŃCOWA",finals,[["place","Miejsce"],["name","Drużyna"]]);
-      h+=section("MVP",mvp,[["player","Zawodnik"],["count","MVP"]]);
-      h+=section("NAGRODA PUBLICZNOŚCI",audience,[["player","Zawodnik"],["count","Punkty"]]);
-      h+=section("STATYSTYKI MAP",maps,[["name","Mapa"],["count","Rozegrania"]]);
+      if(!isFirstEdition){
+        h+=section("MVP",mvp,[["player","Zawodnik"],["count","MVP"]]);
+        h+=section("NAGRODA PUBLICZNOŚCI",audience,[["player","Zawodnik"],["count","Punkty"]]);
+        h+=section("STATYSTYKI MAP",maps,[["name","Mapa"],["count","Rozegrania"]]);
+      }
       root.innerHTML=h;
       root.querySelector(".archive-back").addEventListener("click",showList);
     }catch(e){root.innerHTML=`<button class="archive-back" type="button">← Wróć do listy edycji</button><p class="note">Nie udało się wczytać archiwum: ${esc(e.message)}</p>`;root.querySelector(".archive-back").addEventListener("click",showList);}
