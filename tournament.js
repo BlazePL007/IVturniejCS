@@ -51,7 +51,9 @@
   html+='<div class="head"><div><div class="eyebrow">ROZEGRANE SPOTKANIA</div><h2>WYNIKI FAZY GRUPOWEJ</h2><p>Tabele grupowe, rezultaty spotkań i drużyny z awansem.</p></div></div>';
   html+='<h3>TABELE GRUPOWE</h3><div class="group-tables">';
   groups.forEach(g=>{html+=`<div class="panel group-table"><h3>${safe(g.name)}</h3><div class="table-scroll"><table><thead><tr><th>Drużyna</th><th>M</th><th>W</th><th>R</th><th>P</th><th>Rundy</th><th>Pkt</th></tr></thead><tbody>${g.rows.map(r=>`<tr><td>${teamCell(r.id,r.name)}</td><td>${r.M}</td><td>${r.W}</td><td>${r.R}</td><td>${r.P}</td><td>${r.rf}:${r.ra}</td><td><b>${r.Pkt}</b></td></tr>`).join('')}</tbody></table></div><p class="note">Awans: dwie najlepsze drużyny.</p></div>`});
-  html+='</div><h3 style="margin-top:28px">MECZE GRUPOWE</h3><div class="results">';
+  html+='</div>';
+  if(Number(state.teamCount)===12||groups.length===3){html+='<p class="note" style="margin-top:12px">Dodatkowo awansują dwie najlepsze drużyny spośród zespołów z 3. miejsc.</p>';}
+  html+='<h3 style="margin-top:28px">MECZE GRUPOWE</h3><div class="results">';
   (state.matches||[]).filter(m=>m.stage==='group'||m.group).forEach(m=>{const score=m.played?(m.maps||[]).map(x=>`${x.a}:${x.b}`).join(' / '):'—';html+=`<div class="result"><div><small>${safe(m.group||'FAZA GRUPOWA')} · BO2</small><strong class="result-teams">${teamCell(m.team1Id,m.team1)}<span class="versus">VS</span>${teamCell(m.team2Id,m.team2)}</strong></div><div class="result-scoreblock"><div class="scorebig">${score}</div>${m.played?mapNamesLine(m):''}</div></div>`});
   html+='</div>';
   const allDone=(state.matches||[]).filter(m=>m.stage==='group'||m.group).length>0&&(state.matches||[]).filter(m=>m.stage==='group'||m.group).every(m=>m.played);
