@@ -133,7 +133,7 @@
       if(c[0]==="maps")return `<td>${formatMapScores(value)}</td>`;
       if(c[3]==="image"){
         const url=clean(value);
-        return `<td>${url?`<a href="${esc(url)}" target="_blank" rel="noopener">Zobacz mapę</a>`:"—"}</td>`;
+        return `<td>${url?`<a href="${esc(url)}" target="_blank" rel="noopener noreferrer"><img class="archive-map-thumb" src="${esc(url)}" alt="Obraz mapy" loading="lazy" referrerpolicy="no-referrer" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><span hidden>Obraz niedostępny</span></a>`:"—"}</td>`;
       }
       return `<td>${display(value)}</td>`;
     }).join("")}</tr>`).join(""):`<tr><td class="archive-empty" colspan="${cols.length}">${esc(emptyText)}</td></tr>`;
@@ -193,7 +193,7 @@
       if(!isFirstEdition){
         h+=section("MVP",mvp,[["player","Zawodnik"],["count","MVP"]]);
         h+=section("NAGRODA PUBLICZNOŚCI",audience,[["player","Zawodnik"],["count","Punkty"]]);
-        h+=section("STATYSTYKI MAP",maps,[["name","Mapa"],["count","Rozegrania"]]);
+        h+=section("STATYSTYKI MAP",maps,[["image","Obrazek","", "image"],["name","Mapa"],["count","Rozegrania"]]);
       }
       root.innerHTML=h;
       root.querySelector(".archive-back").addEventListener("click",showList);
