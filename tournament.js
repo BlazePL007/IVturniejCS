@@ -12,7 +12,7 @@
  function calc(state){return (state.groups||[]).map(g=>{const rows=g.teams.map(t=>({id:t.id,name:t.name,M:0,W:0,R:0,P:0,rf:0,ra:0,Pkt:0}));
   (state.matches||[]).filter(m=>m.group===g.name&&m.played).forEach(m=>{const a=rows.find(x=>x.id===m.team1Id),b=rows.find(x=>x.id===m.team2Id);if(!a||!b)return;a.M++;b.M++;const mapsA=(m.maps||[]).filter(x=>x.a!==null&&x.b!==null).reduce((s,x)=>s+(x.a>x.b?1:0),0);const mapsB=(m.maps||[]).filter(x=>x.a!==null&&x.b!==null).reduce((s,x)=>s+(x.b>x.a?1:0),0);if(mapsA>mapsB){a.W++;b.P++}else if(mapsB>mapsA){b.W++;a.P++}else{a.R++;b.R++}a.Pkt+=mapsA;b.Pkt+=mapsB;(m.maps||[]).forEach(x=>{a.rf+=fmt(x.a);a.ra+=fmt(x.b);b.rf+=fmt(x.b);b.ra+=fmt(x.a)})});
   rows.forEach(r=>{r.diff=r.rf-r.ra;const o=state.standingsOverrides?.[r.id];if(o){['M','W','R','P','rf','ra','Pkt'].forEach(k=>{if(o[k]!==undefined&&o[k]!==null)r[k]=fmt(o[k])});r.diff=r.rf-r.ra}});
-  rows.sort((a,b)=>b.Pkt-a.Pkt||b.diff-a.diff||b.rf-a.rf||a.name.localeCompare(b.name,'pl'));return {name:g.name,rows};});}
+  if(Array.isArray(state.playoffs)&&state.playoffs.length){rows.sort((a,b)=>b.Pkt-a.Pkt||b.diff-a.diff||b.rf-a.rf||a.name.localeCompare(b.name,'pl'));}return {name:g.name,rows};});}
  function render(state){
   const groups=calc(state);
   let html='';
