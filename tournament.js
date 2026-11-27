@@ -63,7 +63,24 @@
   html+='<h3 style="margin-top:28px">MECZE GRUPOWE</h3><div class="group-matches">';
   matchGroups.filter(g=>g.matches.length).forEach(g=>{
    html+=`<section class="panel group-matches-panel"><div class="group-matches-heading"><div><div class="eyebrow">FAZA GRUPOWA</div><h3>${safe(g.name)}</h3></div><small>${g.matches.length} ${g.matches.length===1?'MECZ':(g.matches.length%10>=2&&g.matches.length%10<=4&&!(g.matches.length%100>=12&&g.matches.length%100<=14)?'MECZE':'MECZÓW')}</small></div><div class="results">`;
-   g.matches.forEach(m=>{const score=m.played?(m.maps||[]).filter(x=>x&&x.a!==null&&x.b!==null).map(x=>`${x.a}:${x.b}`).join(' / '):'';const matchDate=m.date?safe(m.date+(m.time?' · '+m.time:'')):'Termin do ustalenia';html+=`<div class="result"><div><strong class="result-teams">${teamCell(m.team1Id,m.team1)}<span class="versus">VS</span>${teamCell(m.team2Id,m.team2)}</strong></div><div class="result-scoreblock">${m.played?`<div class="scorebig">${score||'—'}</div>${mapNamesLine(m)}<small class="result-match-date">${matchDate}</small>`:`<div class="scorebig result-scheduled-date">${matchDate}</div>`}</div></div>`;});
+   const sortedGroupMatches=g.matches.map((m,index)=>({m,index})).sort((a,b)=>{
+    const dateKey=value=>{
+     const raw=String(value||'').trim();
+     let match=raw.match(/^(\d{4})[-.](\d{1,2})[-.](\d{1,2})$/);
+     if(match)return `${match[1]}-${match[2].padStart(2,'0')}-${match[3].padStart(2,'0')}`;
+     match=raw.match(/^(\d{1,2})[./](\d{1,2})[./](\d{4})$/);
+     if(match)return `${match[3]}-${match[2].padStart(2,'0')}-${match[1].padStart(2,'0')}`;
+     return '';
+    };
+    const da=dateKey(a.m.date),db=dateKey(b.m.date);
+    if(da&&db&&da!==db)return da.localeCompare(db);
+    if(da&&!db)return -1;
+    if(!da&&db)return 1;
+    const ta=String(a.m.time||'').trim(),tb=String(b.m.time||'').trim();
+    if(da&&db&&ta&&tb&&ta!==tb)return ta.localeCompare(tb);
+    return a.index-b.index;
+   }).map(x=>x.m);
+   sortedGroupMatches.forEach(m=>{const score=m.played?(m.maps||[]).filter(x=>x&&x.a!==null&&x.b!==null).map(x=>`${x.a}:${x.b}`).join(' / '):'';const matchDate=m.date?safe(m.date+(m.time?' · '+m.time:'')):'Termin do ustalenia';html+=`<div class="result"><div><strong class="result-teams">${teamCell(m.team1Id,m.team1)}<span class="versus">VS</span>${teamCell(m.team2Id,m.team2)}</strong></div><div class="result-scoreblock">${m.played?`<div class="scorebig">${score||'—'}</div>${mapNamesLine(m)}<small class="result-match-date">${matchDate}</small>`:`<div class="scorebig result-scheduled-date">${matchDate}</div>`}</div></div>`;});
    html+='</div></section>';
   });
   html+='</div>';
