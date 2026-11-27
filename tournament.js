@@ -51,6 +51,7 @@
   html+='<div class="head"><div><div class="eyebrow">ROZEGRANE SPOTKANIA</div><h2>WYNIKI FAZY GRUPOWEJ</h2><p>Tabele grupowe, rezultaty spotkań i drużyny z awansem.</p></div></div>';
   html+='<h3>TABELE GRUPOWE</h3><div class="group-tables">';
   groups.forEach(g=>{html+=`<div class="panel group-table"><h3>${safe(g.name)}</h3><div class="table-scroll"><table><thead><tr><th>Drużyna</th><th>M</th><th>W</th><th>R</th><th>P</th><th>Rundy</th><th>Pkt</th></tr></thead><tbody>${g.rows.map(r=>`<tr><td>${teamCell(r.id,r.name)}</td><td>${r.M}</td><td>${r.W}</td><td>${r.R}</td><td>${r.P}</td><td>${r.rf}:${r.ra}</td><td><b>${r.Pkt}</b></td></tr>`).join('')}</tbody></table></div><p class="note">Awans: dwie najlepsze drużyny.</p></div>`});
+  html+='</div>';
   const groupMatches=(state.matches||[]).filter(m=>m.stage==='group'||m.group);
   const matchGroups=[];
   const addMatchGroup=name=>{if(!matchGroups.some(g=>g.name===name))matchGroups.push({name,matches:[]});};
