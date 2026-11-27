@@ -5,10 +5,20 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<link rel="stylesheet" href="assets/css/style.css?v=8"></head><body>
+<link rel="stylesheet" href="assets/css/style.css?v=8">
+<style>
+.registration-closed{
+ display:inline-flex;align-items:center;justify-content:center;
+ padding:13px 22px;border:1px solid rgba(242,178,51,.42);
+ border-radius:8px;background:rgba(242,178,51,.08);
+ color:#f2b233;font-weight:800;letter-spacing:.06em;
+ text-decoration:none;cursor:default;pointer-events:none;
+}
+</style>
+</head><body>
 <div id="site-navbar"></div><script src="assets/js/navbar.js?v=8"></script>
 <main class="wrap">
-<div class="hero"><div><div class="eyebrow"><i class="dot"></i> TURNIEJ SPOŁECZNOŚCI · COUNTER-STRIKE 2</div><h1>WALCZ O <span>ZWYCIĘSTWO.</span></h1><p class="lead">Turniej CS2 społeczności BlazePL007. Załóż konto, stwórz drużynę i śledź rywalizację. Drabinka, wyniki i lista drużyn są dostępne na osobnych podstronach.</p><div class="actions"><a class="btn" href="team-register.html">ZAPISZ DRUŻYNĘ →</a><a class="btn ghost" id="phaseCta" href="results.html">ZOBACZ WYNIKI</a><a class="btn ghost" href="info.html">INFORMACJE I REGULAMIN</a></div></div><div class="hero-art"><img class="hero-banner-img" src="assets/turniej-banner.png" alt="Baner turnieju CS2 BlazePL007"></div></div>
+<div class="hero"><div><div class="eyebrow"><i class="dot"></i> TURNIEJ SPOŁECZNOŚCI · COUNTER-STRIKE 2</div><h1>WALCZ O <span>ZWYCIĘSTWO.</span></h1><p class="lead">Turniej CS2 społeczności BlazePL007. Załóż konto, stwórz drużynę i śledź rywalizację. Drabinka, wyniki i lista drużyn są dostępne na osobnych podstronach.</p><div class="actions"><a class="btn" id="registrationCtaTop" href="team-register.html">ZAPISZ DRUŻYNĘ →</a><a class="btn ghost" id="phaseCta" href="results.html">ZOBACZ WYNIKI</a><a class="btn ghost" href="info.html">INFORMACJE I REGULAMIN</a></div></div><div class="hero-art"><img class="hero-banner-img" src="assets/turniej-banner.png" alt="Baner turnieju CS2 BlazePL007"></div></div>
 <section id="twitch-live">
  <div class="head"><div><div class="eyebrow"><i class="dot"></i> TRANSMISJA NA ŻYWO</div><h2>BLAZEPL007 LIVE</h2><p>Oglądaj transmisję i rozmawiaj z czatem bezpośrednio na stronie.</p></div><a class="btn ghost" href="https://www.twitch.tv/blazepl007" target="_blank" rel="noopener">OTWÓRZ TWITCH ↗</a></div>
  <div class="twitch-embed">
@@ -17,7 +27,7 @@
  </div>
 </section>
 <div class="stats"><div class="stat"><strong id="statTeams">—</strong><span>ZATWIERDZONE DRUŻYNY</span></div><div class="stat"><strong>5 VS 5</strong><span>FORMAT MECZÓW</span></div><div class="stat"><strong id="statMatches">—</strong><span>ROZEGRANE MECZE</span></div></div>
-<section id="zapisy"><div class="twitch"><div><div class="eyebrow"><i class="dot"></i> ZAPISY DO TURNIEJU</div><h3>STWÓRZ KONTO I ZGŁOŚ DRUŻYNĘ</h3><p>Rejestracja, logowanie i formularz zgłoszeniowy znajdują się na osobnej stronie.</p></div><a class="btn" href="team-register.html">ZAPISZ DRUŻYNĘ →</a></div></section>
+<section id="zapisy"><div class="twitch"><div><div class="eyebrow"><i class="dot"></i> ZAPISY DO TURNIEJU</div><h3>STWÓRZ KONTO I ZGŁOŚ DRUŻYNĘ</h3><p>Rejestracja, logowanie i formularz zgłoszeniowy znajdują się na osobnej stronie.</p></div><a class="btn" id="registrationCtaBottom" href="team-register.html">ZAPISZ DRUŻYNĘ →</a></div></section>
 
 </main><footer><div class="wrap foot"><span>© 2026 BLAZEPL007 · TURNIEJ CS2</span><span>Community tournament · Counter-Strike 2</span></div></footer>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="supabase-config.js"></script><script>
@@ -75,4 +85,33 @@
   fallback();
  }
 })();
-</script></body></html>
+</script>
+<script>
+(async function syncHomepageRegistrationStatus(){
+ const buttons=[
+  document.getElementById("registrationCtaTop"),
+  document.getElementById("registrationCtaBottom")
+ ].filter(Boolean);
+ if(!buttons.length)return;
+ try{
+  if(!window.supabase || !window.SUPABASE_URL || !window.SUPABASE_PUBLISHABLE_KEY)return;
+  const db=window.supabase.createClient(window.SUPABASE_URL,window.SUPABASE_PUBLISHABLE_KEY);
+  const {data,error}=await db.from("tournament_registration")
+   .select("is_open").eq("id",1).single();
+  if(error)throw error;
+  if(data?.is_open===false){
+   buttons.forEach(button=>{
+    button.removeAttribute("href");
+    button.setAttribute("aria-disabled","true");
+    button.setAttribute("role","status");
+    button.classList.remove("btn","ghost");
+    button.classList.add("registration-closed");
+    button.textContent="ZAPISY ZAMKNIĘTE";
+   });
+  }
+ }catch(error){
+  console.error("Nie udało się pobrać statusu zapisów na stronie głównej:",error);
+ }
+})();
+</script>
+</body></html>
